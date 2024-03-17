@@ -1,14 +1,17 @@
 <?php
+
 session_start();
 
 $error = '';
 if (isset($_POST['submit'])) {
-    if (empty($_SESSION['name']) || empty($_SESSION['age']) || empty($_SESSION['phone']) ) {
+    if (empty($_SESSION['name']) || empty($_SESSION['age']) || empty($_SESSION['phone'])) {
         $error = "All fields are required";
     } else {
         $name = $_SESSION["name"];
         $age = $_SESSION["age"];
         $phoneno = $_SESSION["phone"];
+        $email = $_SESSION['email'];
+        $_SESSION['e'] = $email;
         $disease = $_POST['disease'];
         $department = $_POST['department'];
         $doctor = $_POST['doctor'];
@@ -24,22 +27,21 @@ if (isset($_POST['submit'])) {
         if ($data->connect_error) {
             die("Connection failed: " . $data->connect_error);
         }
-
-        // Check if the slot is available for the selected doctor
-        $slotQuery = "SELECT * FROM slot_booking WHERE doctor = '$doctor' AND slot = '$slot'";
+        $slotQuery = "SELECT * FROM slot_booking WHERE doctor = '$doctor' AND slot = '$slot' ";
         $slotResult = $data->query($slotQuery);
         if ($slotResult->num_rows > 0) {
             $error = "Slot is already booked for the selected doctor. Please choose another slot.";
         } else {
-            // Proceed with appointment booking
-            $sql = "INSERT INTO appointment(patient_name, patient_age, patient_phoneno, disease, department, doctor, appointment_date, appointment_type, online_meeting_type, address, slot) VALUES ('$name', '$age', '$phoneno', '$disease', '$department', '$doctor', NOW(), '$type', '$online_meeting_type', '$address', '$slot')";
+
+            $sql = "INSERT INTO appointment(patient_name, patient_age, patient_phoneno, disease, department, doctor, appointment_date, appointment_type, online_meeting_type, address, slot,status) VALUES ('$name', '$age', '$phoneno', '$disease', '$department', '$doctor', NOW(), '$type', '$online_meeting_type', '$address', '$slot','not Done')";
             $result = $data->query($sql);
             if ($result) {
-                // Update slot booking table
-                $slotInsertQuery = "INSERT INTO slot_booking(doctor, slot, appointment_type) VALUES ('$doctor', '$slot', '$type')";
-                $slotInsertResult = $data->query($slotInsertQuery);
-                if ($slotInsertResult) {
-                    header("Location: thankyou.php");
+
+                $slotInsertQuery = "INSERT INTO slot_booking(doctor, slot, appointment_type) VALUES (?, ?, ?)";
+                $stmt = $data->prepare($slotInsertQuery);
+                $stmt->bind_param("sss", $doctor, $slot, $type);
+                if ($stmt->execute()) {
+                    header("Location: payment.php");
                 } else {
                     echo "Error: " . $slotInsertQuery . "<br>" . $data->error;
                 }
@@ -58,6 +60,7 @@ if (isset($_POST['submit'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Online Appointment</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
 </head>
 <body class="bg-light">
     <div class="container mt-5">
@@ -86,7 +89,6 @@ if (isset($_POST['submit'])) {
                             <option value="Urology">Urology</option>
                             <option value="Ophthalmology">Ophthalmology</option>
                             <option value="Gynaecology & Obstetrics">Gynaecology & Obstetrics</option>
-                        <!-- Other departments here -->
                         </select>
                     </div>
                     <div class="form-group col-md-6">
@@ -97,11 +99,11 @@ if (isset($_POST['submit'])) {
                         <label for="slot">Slot:</label>
                         <select id="slot" name="slot" class="form-control" required>
                             <option value="" selected disabled>Select Slot</option>
-                            <option value="9 ">9:00 - 10:00</option>
-                            <option value="9 ">10:00 -- 11:00</option>
-                            <option value="9 ">11:00 -- 12:00</option>
-                            <option value="9 ">12:00 -- 1:00</option>
-                            <!-- Other slots here -->
+                            <option value="9">9:00 - 10:00</option>
+                            <option value="10">10:00 -- 11:00</option>
+                            <option value="11">11:00 -- 12:00</option>
+                            <option value="12">12:00 -- 1:00</option>
+
                         </select>
                     </div>
                     <div class="form-group">
@@ -109,7 +111,9 @@ if (isset($_POST['submit'])) {
                         <select id="online_meeting_type" name="online_meeting_type" class="form-control" required>
                             <option value="" selected disabled>Select Online Meeting Type</option>
                             <option value="Google Meet">Google Meet</option>
-                            <!-- Other online meeting types here -->
+                            <option value="Microsoft Teams"> Microsoft Teams</option>
+                            <option value="Zoom">Zoom</option>
+
                         </select>
                     </div>
                     <div class="text-danger"><?php echo $error; ?></div>

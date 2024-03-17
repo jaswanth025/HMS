@@ -8,7 +8,11 @@
         <link rel="stylesheet" href="animations.css">  
         <link rel="stylesheet" href="main.css">  
         <link rel="stylesheet" href="index.css">
-
+        <style>
+            .btn{
+                border-radius:15px;
+            }
+        </style>
     </head>
     <body class="bg-light">
     <div class="full-height">
@@ -30,10 +34,9 @@
                     <h2 class="text-center">Login</h2>
                 </div>
                 <div class="card-body">
-                    <div style="margin-bottom:10px;margin-left:-5px;padding:10px;">
-                    <a href="patient_login.php"style="margin-left:10px;padding-left:40px;padding-right:50px;padding-top:12px;padding-bottom:12px;background-color:blue;color:black;list-style-type:none;text-decoration:none;color:white">PATIENT LOGIN</a>
-                    <!-- *<a href="doctor_login.php"style="padding-left:50px;padding-right:50px;list-style-type:none;text-decoration:none;">DOCTOR LOGIN</a>
-                    --> <br></div>
+                    <div style="margin-bottom:10px;margin-left:-20px;padding:10px;">
+                    <a  class="btn btn-primary btn-block" href="patient_login.php"style=" margin-left:10px;padding-left:40px;padding-right:50px;padding-top:12px;padding-bottom:12px;color:black;list-style-type:none;text-decoration:none;color:white">PATIENT LOGIN</a>
+                     <br></div>
                     <form id="loginForm" method="post">
                         <div class="form-group">
                             <label for="username">Username:</label>
@@ -45,7 +48,7 @@
                             <input type="password" id="password" name="password" class="form-control" required>
                         </div>
 
-                        <input type="submit" name="submit" class="btn btn-primary btn-block"value="submit">
+                        <input type="submit" name="submit" class="btn btn-primary btn-block"value="SUBMIT" >
                     </form>
                     <p id="error-message" class="mt-3 text-danger text-center"></p>
                     <p class="mt-3 text-center">Don't have an account? <a href="patient_signup.php">Register here</a></p>
@@ -84,10 +87,12 @@
     $field1name = $row["name"];
     $field2name = $row["age"];
     $field3name = $row["phoneno"];
+    $field4name = $row["email"];
     session_start();
     $_SESSION["name"]=$field1name;
     $_SESSION["age"]=$field2name;
     $_SESSION["phone"]=$field3name;
+    $_SESSION["email"]=$field4name;
     }
     if (isset($_POST['submit'])) {
         if ($result->num_rows > 0) {

@@ -1,21 +1,20 @@
 <?php
-session_start(); // Start the session to access session variables
+session_start(); 
 
-// Your database connection code goes here
+
 $host = "localhost";
 $user = "root";
 $password = "";
 $db = "hospital";
 
-// Create connection
+
 $conn = new mysqli($host, $user, $password, $db);
 
-// Check connection
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the email from the session variable
 $email = $_SESSION['email'];
 
 $doctorNames = array(
@@ -32,35 +31,48 @@ $doctorNames = array(
 );
 
 $doctorName = $doctorNames[$email];
-// Fetch the doctor's name from the database
-$sql = "SELECT name FROM doctor_list WHERE email= '$email'";
-$result = $conn->query($sql);
 
-if ($result->num_rows > 0) {
-    // Fetch the row and get the doctor's name
-    $row = $result->fetch_assoc();
+if (isset($_POST['mark_done'])) {
+    $appointmentId = $_POST['appointment_id'];
+        $updateSql = "UPDATE appointment SET status = 'done' WHERE id = $appointmentId";
+    if ($conn->query($updateSql) === TRUE) {
 
+        $deleteSlotSql = "DELETE FROM slot_booking WHERE doctor = '$doctorName' AND slot IN (SELECT slot FROM appointment WHERE id = $appointmentId)";
+        if ($conn->query($deleteSlotSql) === TRUE) {
 
-    // Fetch appointments data for the selected doctor from the database
-    $sql = "SELECT * FROM appointment WHERE doctor = '$doctorName'";
-    $result = $conn->query($sql);
+            $deleteAppointmentSql = "DELETE FROM appointment WHERE id = $appointmentId";
+            if ($conn->query($deleteAppointmentSql) === TRUE) {
 
-    // Check if there are any appointments
-    if ($result->num_rows > 0) {
-        // Fetch each row of the result set and store it in the appointments array
-        while ($row = $result->fetch_assoc()) {
-            $appointments[] = $row;
+                header("Location: ".$_SERVER['PHP_SELF']);
+                exit();
+            } else {
+                echo "Error deleting appointment record: " . $conn->error;
+            }
+        } else {
+            echo "Error deleting slot booking record: " . $conn->error;
         }
     } else {
-        echo "No appointments found for this doctor.";
+        echo "Error updating appointment record: " . $conn->error;
     }
-} else {
-    echo "Doctor not found.";
 }
 
-// Close the database connection
+
+$sql = "SELECT * FROM appointment WHERE doctor = '$doctorName'";
+$result = $conn->query($sql);
+
+// Check if there are any appointments
+if ($result->num_rows > 0) {
+   
+    while ($row = $result->fetch_assoc()) {
+        $appointments[] = $row;
+    }
+} else {
+    echo "No appointments found for this doctor.";
+}
+
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,7 +81,7 @@ $conn->close();
     <title>Doctor Dashboard</title>
     <style>
         body {
-            background-image: url('b4.jpg'); /* Specify the path to your image */
+            background-image: url('b4.jpg');
             background-size: cover;
             font-family: Arial, sans-serif;
             background-repeat: no-repeat;
@@ -83,7 +95,7 @@ $conn->close();
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.8); /* Add a semi-transparent white background to improve readability */
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -114,6 +126,7 @@ $conn->close();
 
         td {
             background-color: #333;
+            color: white; 
         }
 
         tbody tr:nth-child(even) td {
@@ -123,14 +136,31 @@ $conn->close();
         tr:last-child td {
             border-bottom: none;
         }
-        h2,h3{
+
+        h2, h3 {
             color: black;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+    <div class= "home" style="postion : relative" >
+        <button onclick="window.location.href = 'home.php';" style="float:right; text-decoration: None ; width: 75px; border-radius: 5px; margin-right:20px" ><p>Home</p></button>
+    </div>
     <div class="container">
-        <h2 >Doctor Dashboard</h2>
+        <h2>Doctor Dashboard</h2>
         <h3>Welcome, <?php echo $doctorName; ?></h3>
         <table>
             <thead>
@@ -140,11 +170,12 @@ $conn->close();
                     <th>Disease</th>
                     <th>Slot</th>
                     <th>Appointment Type</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
-                // Your PHP code to fetch appointments data from the database and loop through it
+
                 if (!empty($appointments)) {
                     foreach ($appointments as $appointment) {
                         echo "<tr>";
@@ -153,6 +184,17 @@ $conn->close();
                         echo "<td>" . $appointment['disease'] . "</td>";
                         echo "<td>" . $appointment['slot'] . "</td>";
                         echo "<td>" . $appointment['appointment_type'] . "</td>";
+                        echo "<td>";
+                    
+                        if ($appointment['status'] != 'done') {
+                            echo "<form method='post'>";
+                            echo "<input type='hidden' name='appointment_id' value='" . $appointment['id'] . "'>";
+                            echo "<input type='submit' name='mark_done' value='Mark as Done'>";
+                            echo "</form>";
+                        } else {
+                            echo "Done";
+                        }
+                        echo "</td>";
                         echo "</tr>";
                     }
                 }

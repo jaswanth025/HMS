@@ -1,21 +1,29 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'phpmailer/src/Exception.php';
+require 'phpmailer/src/PHPMailer.php';
+require 'phpmailer/src/SMTP.php';
+
 session_start();
 
 $error = '';
 if (isset($_POST['submit'])) {
-    if (empty($_SESSION['name']) || empty($_SESSION['age']) || empty($_SESSION['phone']) ) {
+    if (empty($_SESSION['name']) || empty($_SESSION['age']) || empty($_SESSION['phone'])) {
         $error = "All fields are required";
     } else {
         $name = $_SESSION["name"];
         $age = $_SESSION["age"];
         $phoneno = $_SESSION["phone"];
+        $email = $_SESSION['email'];
         $disease = $_POST['disease'];
         $department = $_POST['department'];
         $doctor = $_POST['doctor'];
         $slot = $_POST['slot'];
         $type = 'normal';
-        $online_meeting_type =  '';
-        $address =  '';
+        $online_meeting_type = '';
+        $address = '';
         $host = "localhost";
         $user = "root";
         $password = "";
@@ -25,21 +33,46 @@ if (isset($_POST['submit'])) {
             die("Connection failed: " . $data->connect_error);
         }
 
-        // Check if the slot is available for the selected doctor
         $slotQuery = "SELECT * FROM slot_booking WHERE doctor = '$doctor' AND slot = '$slot' ";
         $slotResult = $data->query($slotQuery);
         if ($slotResult->num_rows > 0) {
             $error = "Slot is already booked for the selected doctor. Please choose another slot.";
         } else {
-            // Proceed with appointment booking
-            $sql = "INSERT INTO appointment(patient_name, patient_age, patient_phoneno, disease, department, doctor, appointment_date, appointment_type, online_meeting_type, address, slot) VALUES ('$name', '$age', '$phoneno', '$disease', '$department', '$doctor', NOW(), '$type', '$online_meeting_type', '$address', '$slot')";
+
+            $sql = "INSERT INTO appointment(patient_name, patient_age, patient_phoneno, disease, department, doctor, appointment_date, appointment_type, online_meeting_type, address, slot,status) VALUES ('$name', '$age', '$phoneno', '$disease', '$department', '$doctor', NOW(), '$type', '$online_meeting_type', '$address', '$slot','not Done')";
             $result = $data->query($sql);
             if ($result) {
-                // Update slot booking table
-                $slotInsertQuery = "INSERT INTO slot_booking(doctor, slot, appointment_type) VALUES ('$doctor', '$slot', '$type')";
-                $slotInsertResult = $data->query($slotInsertQuery);
-                if ($slotInsertResult) {
-                    header("Location: thankyou.php");
+
+                $slotInsertQuery = "INSERT INTO slot_booking(doctor, slot, appointment_type) VALUES (?, ?, ?)";
+                $stmt = $data->prepare($slotInsertQuery);
+                $stmt->bind_param("sss", $doctor, $slot, $type);
+                if ($stmt->execute()) {
+                    $mail = new PHPMailer(true);
+                    try {
+
+                        $mail->isSMTP();
+                        $mail->Host = 'smtp.gmail.com';
+                        $mail->SMTPAuth = true;
+                        $mail->Username = 'chodavarapujaswanthkumar@gmail.com'; 
+                        $mail->Password = 'dywe spbm rvqf samt'; 
+                        $mail->SMTPSecure = 'ssl';
+                        $mail->Port = 465;
+                    
+     
+                        $mail->setFrom('chodavarapujaswanthkumar@gmail.com', 'Hospital Team');
+                        $mail->addAddress($email);
+                    
+                        $mail->isHTML(true);
+                        $mail->Subject = "Appointment Confirmation";
+                        $mail->Body = "Dear $name, <br><br>Your appointment has been successfully booked with Dr. $doctor for $disease department at $slot.<br><br>Thank you for choosing our hospital.<br><br>Regards,<br>Hospital Team";
+                    
+                        $mail->send();
+                        //echo "<script>alert('Email sent successfully');</script>";
+                        header("Location: thankyou.php");
+                        exit();
+                    } catch (Exception $e) {
+                        echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                    }
                 } else {
                     echo "Error: " . $slotInsertQuery . "<br>" . $data->error;
                 }
@@ -97,10 +130,10 @@ if (isset($_POST['submit'])) {
                         <label for="slot">Slot:</label>
                         <select id="slot" name="slot" class="form-control" required>
                             <option value="" selected disabled>Select Slot</option>
-                            <option value="9 ">9:00 - 10:00</option>
-                            <option value="9 ">10:00 -- 11:00</option>
-                            <option value="9 ">11:00 -- 12:00</option>
-                            <option value="9 ">12:00 -- 1:00</option>
+                            <option value="9">9:00 - 10:00</option>
+                            <option value="10 ">10:00 -- 11:00</option>
+                            <option value="11">11:00 -- 12:00</option>
+                            <option value="12">12:00 -- 1:00</option>
 
                         </select>
                     </div>

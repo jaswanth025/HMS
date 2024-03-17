@@ -12,6 +12,7 @@
     $name=$_POST['name'];
     $age=$_POST['age'];
     $phoneno=$_POST['phone'];
+    $email = $_POST['email'];
     $usernames=$_POST['username'];
     $passwords=$_POST['pass'];
     $host="localhost";
@@ -21,11 +22,12 @@
     $_SESSION["name"]=$name;
     $_SESSION["age"]=$age;
     $_SESSION["phone"]=$phoneno;
+    $_SESSION["email"]=$email;
     $data=mysqli_connect($host,$user,$password,$db);
     if ($data->connect_error) {
         die("Connection failed: " . $data->connect_error);
     }
-    $sql = "insert into registration ( username, passwords,name, age , phoneno   ) values('$usernames','$passwords','$name','$age','$phoneno')";
+    $sql = "insert into registration (username, passwords, name, age, phoneno, email) values('$usernames','$passwords','$name','$age','$phoneno','$email')";
     $result = $data->query($sql);
     echo $result;
     if ($result>0) {
@@ -46,6 +48,11 @@
     <link rel="stylesheet" href="animations.css">  
     <link rel="stylesheet" href="main.css">  
     <link rel="stylesheet" href="index.css">
+    <style>
+        .btn{
+            border-radius:15px;
+        }
+    </style>
 </head>
 <body class="bg-light">
 <div class="full-height">
@@ -68,7 +75,7 @@
             </div>
             <div class="card-body">
             <div style="margin-bottom:10px;margin-left:-5px;padding:10px;">
-                <a href="patient_signup.php"style="margin-left:0px;padding-left:110px;padding-right:125px;padding-top:12px;padding-bottom:12px;background-color:green;color:black;list-style-type:none;text-decoration:none;color:white">PATIENT REGISTRATION</a>
+                <a  class="btn btn-success btn-block" href="patient_signup.php"style="margin-left:0px;padding-left:110px;padding-right:125px;padding-top:12px;padding-bottom:12px;color:black;list-style-type:none;text-decoration:none;color:white">PATIENT REGISTRATION</a>
                 <!-- <a href="doctor_signup.php"style="padding-left:50px;padding-right:50px;list-style-type:none;text-decoration:none;">DOCTOR REGISTRATION</a> -->
                 <br></div>
                 <form id="registrationForm" method="post">
@@ -89,11 +96,16 @@
                             <input type="tel" id="phone" name="phone" class="form-control" required>
                         </div>
                         <div class="form-group col-md-6">
+                            <label for="email">Email:</label>
+                            <input type="text" id="email" name="email" class="form-control" required>
+                        </div>
+                        
+                    </div>
+                    <div class="form-row">
+                       <div class="form-group col-md-6">
                             <label for="username">username:</label>
                             <input type="text" id="username" name="username" class="form-control" required>
                         </div>
-</div>
-                        <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="password">Password:</label>
                             <input type="password" id="password" name="pass" class="form-control" required>

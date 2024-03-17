@@ -89,7 +89,8 @@ $sql = "insert into doctor_registration(name,age ,phoneno,username,passwords,dep
                             <label for="username">username:</label>
                             <input type="text" id="username" name="username" class="form-control" required>
                         </div>
-</div>
+                        
+                        </div>
                         <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="password">Password:</label>
