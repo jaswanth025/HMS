@@ -1,3 +1,16 @@
+<?php
+session_start();
+
+$email = $_GET['email'];
+$name = $_GET['name'];
+$doctor = $_GET['doctor'];
+$disease = $_GET['disease'];
+$slot = $_GET['slot'];
+$online_meeting_type = $_GET['online_meeting_type'];
+
+?>
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,17 +20,16 @@
 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <style>
     h1{
-
         text-align:center;
     }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body style="background-repeat: no-repeat;">
-<div class="container" >
-<div class="row" >
+<div class="container">
+<div class="row">
     <H1>PAYMENT</H1>
-<div class="col-xs-12 col-md-8" style= "margin-top:0px; margin-left:190px;">
+<div class="col-xs-12 col-md-8" style="margin-top:0px; margin-left:190px;">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4 class="panel-title">Charge Rs.300 INR  </h4>
@@ -51,7 +63,7 @@
 </div>
 </div>
 <script>
-    //Pay Amount
+
     jQuery(document).ready(function($){
  
 jQuery('#PayNow').click(function(e){
@@ -99,13 +111,13 @@ var request_url="submitpayment.php";
     "image": "./logo-w.png",
     "order_id": data.userData.rpay_order_id, //This is a sample Order ID. Pass 
     "handler": function (response){
- 
-    window.location.replace("/bh/medical-consultancy/payment-success.php?oid="+orderID+"&rp_payment_id="+response.razorpay_payment_id+"&rp_signature="+response.razorpay_signature);
- 
+        // Handle payment success
+        window.location.href = "email.php?email=<?php echo urlencode($email); ?>&name=" + encodeURIComponent(billing_name) + "&doctor=" + encodeURIComponent("<?php echo $doctor; ?>") + "&disease=" + encodeURIComponent("<?php echo $disease; ?>") + "&slot=" + encodeURIComponent("<?php echo $slot; ?>") + "&online_meeting_type=" + encodeURIComponent("<?php echo $online_meeting_type; ?>") + "&rp_payment_id=" + response.razorpay_payment_id + "&oid=" + orderID + "&rp_signature=" + response.razorpay_signature;
     },
     "modal": {
     "ondismiss": function(){
-         window.location.replace("/bh/medical-consultancy/payment-success.php?oid="+orderID);
+         // Handle payment failure
+         window.location.href = "payment-failed.php?reason=Payment was cancelled or failed";
      }
 },
     "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number

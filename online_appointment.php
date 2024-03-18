@@ -41,10 +41,22 @@ if (isset($_POST['submit'])) {
                 $stmt = $data->prepare($slotInsertQuery);
                 $stmt->bind_param("sss", $doctor, $slot, $type);
                 if ($stmt->execute()) {
-                    header("Location: payment.php");
+                    ?>
+                    <script>
+                        var email = "<?php echo $email; ?>";
+                        var name = "<?php echo $name; ?>";
+                        var doctor = "<?php echo $doctor; ?>";
+                        var disease = "<?php echo $disease; ?>";
+                        var slot = "<?php echo $slot; ?>";
+                        var online_meeting_type = "<?php echo $online_meeting_type; ?>";
+                        window.location.href = "payment.php?email=" + encodeURIComponent(email) + "&name=" + encodeURIComponent(name) + "&doctor=" + encodeURIComponent(doctor) + "&disease=" + encodeURIComponent(disease) + "&slot=" + encodeURIComponent(slot) + "&online_meeting_type=" + encodeURIComponent(online_meeting_type);
+                    </script>
+                    <?php
+                
                 } else {
                     echo "Error: " . $slotInsertQuery . "<br>" . $data->error;
                 }
+
             } else {
                 echo "Error: " . $sql . "<br>" . $data->error;
             }
